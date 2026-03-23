@@ -57,6 +57,8 @@ static int cmd_help(char *args);
 static int cmd_si(char *args);
 
 static int cmd_info(char *args);
+
+static int cmd_x(char *args);
 static struct {
   const char *name;
   const char *description;
@@ -67,12 +69,28 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
   {"si", "Step N instructions", cmd_si},
   {"info", "Display information about the program,info r for register,info w for watchpoint", cmd_info},
-
+  {"x", "Scan memory, x N EXPR", cmd_x},
+  //扫描内存功能,求出表达式EXPR的值, 将结果作为起始内存地址
+// 地址, 以十六进制形式输出连续的N个4字节
   /* TODO: Add more commands */
 
 };
 
 #define NR_CMD ARRLEN(cmd_table)
+
+
+static int cmd_x(char *args) {
+  //扫描内存功能
+  if(args == NULL) {
+    printf("please input x N EXPR\n");
+    return 0;
+  }
+
+
+  return 0;
+}
+
+
 
 static int cmd_si(char *args) {
   //单步调试功能

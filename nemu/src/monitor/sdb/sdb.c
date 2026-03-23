@@ -88,7 +88,7 @@ static int cmd_si(char *args) {
 static int cmd_info(char *args) {
   //显示程序信息功能
   if(args == NULL) {
-    printf("Unknown command '%s'\n", args);
+    printf("please input info r/w\n");
     return 0;
   }
   switch (*args)
@@ -103,7 +103,6 @@ static int cmd_info(char *args) {
 
   default:
     printf("Unknown command '%s'\n", args);
-    return 0;
     break;
   }
   return 0;

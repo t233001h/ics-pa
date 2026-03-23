@@ -87,6 +87,20 @@ static int cmd_si(char *args) {
 
 static int cmd_info(char *args) {
   //显示程序信息功能
+  switch (*args)
+  {
+  case 'r':
+    /* code */
+    break;
+  case 'w':
+    /* code */
+    break;
+
+  default:
+    printf("Unknown command '%s'\n", args);
+    return -1;
+    break;
+  }
   return 0;
 }
 static int cmd_help(char *args) {

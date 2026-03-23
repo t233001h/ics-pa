@@ -99,6 +99,7 @@ static int cmd_info(char *args) {
     break;
   case 'w':
     /* code */
+    //TODO: watchpoint
     break;
 
   default:

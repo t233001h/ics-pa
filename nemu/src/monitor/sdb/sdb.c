@@ -56,6 +56,7 @@ static int cmd_help(char *args);
 
 static int cmd_si(char *args);
 
+static int cmd_info(char *args);
 static struct {
   const char *name;
   const char *description;
@@ -65,6 +66,7 @@ static struct {
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
   {"si", "Step N instructions", cmd_si},
+  {"info", "Display information about the program,info r for register,info w for watchpoint", cmd_info},
 
   /* TODO: Add more commands */
 
@@ -83,6 +85,10 @@ static int cmd_si(char *args) {
   return 0;
 }
 
+static int cmd_info(char *args) {
+  //显示程序信息功能
+  return 0;
+}
 static int cmd_help(char *args) {
   /* extract the first argument */
   char *arg = strtok(NULL, " ");

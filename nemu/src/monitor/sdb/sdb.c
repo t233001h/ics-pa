@@ -93,13 +93,10 @@ static int cmd_x(char *args) {
   char *expr = strtok(NULL, " ");
   // expr先默认0x80000000
   
-  
-
   if(expr == NULL) {
     printf("please input x N EXPR\n");
     return 0;
   }
-  // expr = "0x80000000";
   paddr_t start_addr = 0x80000000;
 
 //0x80000000附近的内存

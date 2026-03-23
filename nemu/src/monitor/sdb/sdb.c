@@ -91,6 +91,7 @@ static int cmd_info(char *args) {
   {
   case 'r':
     /* code */
+    isa_reg_display();
     break;
   case 'w':
     /* code */

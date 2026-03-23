@@ -73,6 +73,8 @@ static struct {
 #define NR_CMD ARRLEN(cmd_table)
 
 static int cmd_si(char *args) {
+  //单步调试功能
+
   int n = 1;
   if (args) {
     n = atoi(args);

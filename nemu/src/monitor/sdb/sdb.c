@@ -62,12 +62,22 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  {"si[N]", "Step N instructions", cmd_q},
 
   /* TODO: Add more commands */
 
 };
 
 #define NR_CMD ARRLEN(cmd_table)
+
+/* static int cmd_si(char *args) {
+  int n = 1;
+  if (args) {
+    n = atoi(args);
+  }
+  cpu_exec(n);
+  return 0;
+} */
 
 static int cmd_help(char *args) {
   /* extract the first argument */

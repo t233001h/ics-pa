@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <memory/paddr.h>
+#include <memory/vaddr.h>
 #include "sdb.h"
 
 static int is_batch_mode = false;
@@ -105,7 +106,7 @@ static int cmd_x(char *args) {
   int i;
   for (i = 0; i < n; i ++) {
     paddr_t addr = start_addr + i * 4;
-    word_t value = paddr_read(addr, 4);  // 读取 4 字节数据
+    word_t value = vaddr_read(addr, 4);  // 读取 4 字节数据
     printf("%08x: %08x\n", addr, value);
   }
 

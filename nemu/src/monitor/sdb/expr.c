@@ -22,8 +22,10 @@
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
+  TK_NUM, TK_HEX, TK_REG, // 数字和寄存器
+  TK_MINUS, TK_MUL, TK_DIV, // 运算符
+  TK_LP, TK_RP, // 括号
 
-  /* TODO: Add more token types */
 
 };
 
@@ -36,9 +38,17 @@ static struct rule {
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE},    // spaces
-  {"\\+", '+'},         // plus
-  {"==", TK_EQ},        // equal
+  {" +", TK_NOTYPE},    // 空格
+  {"==", TK_EQ},        // 等于
+  {"\\+", '+'},         // 加号
+  {"-", TK_MINUS},      // 减号
+  {"\\*", TK_MUL},      // 乘号
+  {"/", TK_DIV},        // 除号
+  {"\\(", TK_LP},       // 左括号
+  {"\\)", TK_RP},       // 右括号
+  {"0x[0-9a-fA-F]+", TK_HEX}, // 十六进制数字
+  {"[0-9]+", TK_NUM},   // 十进制数字
+  {"\\$((0)|(ra|sp|gp|tp)|(t[0-6])|(s([0-9]|1[01]))|(a[0-7]))", TK_REG}, // 寄存器
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -135,8 +145,45 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
 
+
+
   /* TODO: Insert codes to evaluate the expression. */
   TODO();
 
   return 0;
+}
+
+eval(p, q) {
+  if (p > q) {
+    printf("Bad expression\n");
+    assert(0);
+    /* Bad expression */
+  }
+  long long sum=0;
+  else if (p == q) {
+    /* Single token.
+     * For now this token should be a number.
+     * Return the value of the number.
+     */
+    sscanf(tokens[p].str, "%lld", &sum);
+  }
+  else if (check_parentheses(p, q) == true) {
+    /* The expression is surrounded by a matched pair of parentheses.
+     * If that is the case, just throw away the parentheses.
+     */
+    return eval(p + 1, q - 1);
+  }
+  else {
+    op = the position of 主运算符 in the token expression;
+    val1 = eval(p, op - 1);
+    val2 = eval(op + 1, q);
+
+    switch (op_type) {
+      case '+': return val1 + val2;
+      case '-': /* ... */
+      case '*': /* ... */
+      case '/': /* ... */
+      default: assert(0);
+    }
+  }
 }

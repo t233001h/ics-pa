@@ -90,19 +90,30 @@ static int cmd_x(char *args) {
   //分割字符
   char *arg = strtok(NULL, " ");
   int n = atoi(arg);
-  char *expr = strtok(NULL, " ");
-  // expr先默认0x80000000
+  char *e = strtok(NULL, " ");
   
-  if(expr == NULL) {
+  if(e == NULL) {
     printf("please input x N EXPR\n");
     return 0;
   }
-  paddr_t start_addr = 0x80000000;
+  vaddr_t start_addr = 0x80000000;
 
-//0x80000000附近的内存
+  bool success = false;
+
+  word_t expr_value = expr(e, &success);
+  if(!success) {
+    printf("expr_value = %08x\n", expr_value);
+    printf("Invalid expression\n");
+    return 0;
+  }
+
+
+  
+
+
   int i;
   for (i = 0; i < n; i ++) {
-    paddr_t addr = start_addr + i * 4;
+    vaddr_t addr = start_addr + i * 4;
     word_t value = vaddr_read(addr, 4);  // 读取 4 字节数据
     printf("%08x: %08x\n", addr, value);
   }

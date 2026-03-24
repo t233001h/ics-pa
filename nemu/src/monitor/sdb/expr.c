@@ -94,8 +94,24 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
 
-        switch (rules[i].token_type) {
-          default: TODO();
+ if (rules[i].token_type != TK_NOTYPE) {
+          // 确保不超过 tokens 数组大小
+          if (nr_token >= 32) {
+            printf("Too many tokens\n");
+            return false;
+          }
+          // 设置 token 类型
+          tokens[nr_token].type = rules[i].token_type;
+          // 复制字符串到 token.str
+          if (substr_len >= 32) {
+            // 截断过长的字符串
+            strncpy(tokens[nr_token].str, substr_start, 31);
+            tokens[nr_token].str[31] = '\0';
+          } else {
+            strncpy(tokens[nr_token].str, substr_start, substr_len);
+            tokens[nr_token].str[substr_len] = '\0';
+          }
+          nr_token++;
         }
 
         break;
@@ -103,10 +119,11 @@ static bool make_token(char *e) {
     }
 
     if (i == NR_REGEX) {
-      printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
+      printf("no match at position %d\n%s\n%.*s^\n", position, e, position, "");
       return false;
     }
   }
+
 
   return true;
 }

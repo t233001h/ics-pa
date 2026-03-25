@@ -24,6 +24,7 @@ enum {
   TK_NOTYPE = 256, TK_EQ,
   TK_NUM, TK_HEX, TK_REG, // 数字和寄存器
   TK_MINUS, TK_MUL, TK_DIV, // 运算符
+  //TODO TK_NEG, TK_DEREF, TK_NOT, // 一元运算符
   TK_LP, TK_RP, // 括号
 
 
@@ -41,9 +42,9 @@ static struct rule {
   {" +", TK_NOTYPE},    // 空格
   {"==", TK_EQ},        // 等于
   {"\\+", '+'},         // 加号
-  {"-", TK_MINUS},      // 减号
-  {"\\*", TK_MUL},      // 乘号
-  {"/", TK_DIV},        // 除号
+  {"-", '-'},      // 减号
+  {"\\*", '*'},      // 乘号
+  {"/", '/'},        // 除号
   {"\\(", TK_LP},       // 左括号
   {"\\)", TK_RP},       // 右括号
   {"0x[0-9a-fA-F]+", TK_HEX}, // 十六进制数字
@@ -144,16 +145,12 @@ word_t expr(char *e, bool *success) {
     *success = false;
     return 0;
   }
-
-
-
-  /* TODO: Insert codes to evaluate the expression. */
-  TODO();
-
-  return 0;
+  word_t result = eval(0, nr_token - 1);
+  *success = true; 
+  return result;
 }
 
-eval(p, q) {
+static uint32_t eval(int p, int q) {
   if (p > q) {
     printf("Bad expression\n");
     assert(0);
@@ -165,7 +162,29 @@ eval(p, q) {
      * For now this token should be a number.
      * Return the value of the number.
      */
-    sscanf(tokens[p].str, "%lld", &sum);
+     long long num;
+    if (tokens[p].type == TK_HEX)
+      sscanf(tokens[p].str, "%llx", &num);
+    else if (tokens[p].type == TK_DEC)
+      sscanf(tokens[p].str, "%lld", &num);
+    else if (tokens[p].type == TK_REG) {
+      bool success = true;
+      int result = isa_reg_str2val(tokens[p].str, &success);
+      if (!success) {
+        printf("ERROR: invalid register %s\n", tokens[p].str);
+        assert(0);
+      }
+      return result;
+    }
+    else {
+      printf("ERROR: invalid token %d (enum index)\n", tokens[p].type);
+      assert(0);
+    }
+    if (num > 0x100000000) {
+      printf("WARNING: the input number [%s] is too large", tokens[p].str);
+      assert(0);
+    }
+    return (word_t)num;
   }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
@@ -174,16 +193,55 @@ eval(p, q) {
     return eval(p + 1, q - 1);
   }
   else {
-    op = the position of 主运算符 in the token expression;
+    int op;
+    for ( op = p; op < q; op++){
+      if (tokens[op].type == '+' || tokens[op].type == '-' || tokens[op].type == '*' || tokens[op].type == '/')
+        break;
+    }
+    
     val1 = eval(p, op - 1);
     val2 = eval(op + 1, q);
-
+    int op_type = tokens[op].type;
     switch (op_type) {
       case '+': return val1 + val2;
-      case '-': /* ... */
-      case '*': /* ... */
-      case '/': /* ... */
+      case '-': return val1 - val2;
+      case '*': return val1 * val2;
+      case '/': return val1 / val2;
       default: assert(0);
     }
   }
 }
+
+static int check_parentheses(int p, int q) {
+  // check if the expression is surrounded by a matched pair of parentheses
+  if (p > q)
+    return -1;
+  int cnt = 0, i;
+  for (i = p; i <= q; ++i) {
+    if (tokens[i].type == '(')
+      ++cnt;
+    else if (tokens[i].type == ')')
+      --cnt;
+    if (cnt < 0)
+      return 0;
+  }
+  if (cnt)
+    return 0;
+  if (tokens[p].type != '(' || tokens[q].type != ')')
+    return -1;
+  int result = check_parentheses(p + 1, q - 1);
+  if (result) /* value is -1 or 1 */
+    return 1;
+  else
+    return -1;
+}
+
+// TODO
+// static void find_unary_op(){
+//   //标记一元操作符
+//   for (int i = 0; i < nr_token; i++){
+    
+//     /* code */
+//   }
+  
+// }

@@ -16,6 +16,10 @@
 #include <isa.h>
 #include <memory/paddr.h>
 
+#include <stdio.h>
+#include <string.h>
+#include "monitor/sdb/expr.h"
+
 void init_rand();
 void init_log(const char *log_file);
 void init_mem();
@@ -97,9 +101,51 @@ static int parse_args(int argc, char *argv[]) {
   return 0;
 }
 
+
+static void test_expr_eval() {
+  FILE *fp = fopen("tools/gen-expr/input", "r");
+  if (!fp) {
+    fprintf(stderr, "Failed to open input file\n");
+    return;
+  }
+
+  char line[1024];
+  int total = 0, passed = 0, failed = 0;
+
+  while (fgets(line, sizeof(line), fp)) {
+    total++;
+    unsigned expected;
+    char expr_str[512];
+    
+    if (sscanf(line, "%u %[^\n]", &expected, expr_str) != 2) {
+      fprintf(stderr, "Invalid line: %s", line);
+      continue;
+    }
+
+    bool success = false;
+    word_t result = expr(expr_str, &success);
+
+    if (success && result == expected) {
+      passed++;
+    } else {
+      failed++;
+      fprintf(stderr, "Failed: %s\nExpected: %u, Got: %u, Success: %d\n", 
+              expr_str, expected, result, success);
+    }
+  }
+
+  fclose(fp);
+
+  printf("Total: %d, Passed: %d, Failed: %d\n", total, passed, failed);
+  printf("Accuracy: %.2f%%\n", (double)passed / total * 100);
+}
+
 void init_monitor(int argc, char *argv[]) {
   /* Perform some global initialization. */
-
+  if (argc == 2 && strcmp(argv[1], "--test-expr") == 0) {
+    test_expr_eval();
+    exit(0);
+  }
   /* Parse arguments. */
   parse_args(argc, argv);
 

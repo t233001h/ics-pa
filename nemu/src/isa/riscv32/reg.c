@@ -39,7 +39,7 @@ void isa_reg_display() {
 
 word_t isa_reg_str2val(const char *s, bool *success) {
   int i;
-  word_t val;
+  word_t val=0;
   bool found = false;
   for (i = 0; i < 32; i++) {
     if (strcmp(s, regs[i]) == 0) {

@@ -14,13 +14,26 @@
 ***************************************************************************************/
 
 #include <common.h>
+#include <stdio.h>
+#include <string.h>
 
 void init_monitor(int, char *[]);
 void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
 
+// Forward declaration for expr function
+word_t expr(char *e, bool *success);
+
+static void test_expr_eval();
+
 int main(int argc, char *argv[]) {
+  /* Test expression evaluation */
+  if (argc == 2 && strcmp(argv[1], "--test-expr") == 0) {
+    test_expr_eval();
+    return 0;
+  }
+
   /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
   am_init_monitor();
@@ -32,4 +45,47 @@ int main(int argc, char *argv[]) {
   engine_start();
 
   return is_exit_status_bad();
+}
+
+static void test_expr_eval() {
+  // 初始化正则表达式
+  extern void init_regex();
+  init_regex();
+
+  FILE *fp = fopen("tools/gen-expr/input", "r");
+  if (!fp) {
+    fprintf(stderr, "Failed to open input file\n");
+    return;
+  }
+
+  char line[1024];
+  int total = 0, passed = 0, failed = 0;
+
+  while (fgets(line, sizeof(line), fp)) {
+    total++;
+    unsigned expected;
+    char expr_str[512];
+    
+    // 正确的格式字符串，确保在一行内
+    if (sscanf(line, "%u %[^\n]", &expected, expr_str) != 2) {
+      fprintf(stderr, "Invalid line: %s", line);
+      continue;
+    }
+
+    bool success = false;
+    word_t result = expr(expr_str, &success);
+
+    if (success && result == expected) {
+      passed++;
+    } else {
+      failed++;
+      fprintf(stderr, "Failed: %s\nExpected: %u, Got: %u, Success: %d\n", 
+              expr_str, expected, result, success);
+    }
+  }
+
+  fclose(fp);
+
+  printf("Total: %d, Passed: %d, Failed: %d\n", total, passed, failed);
+  printf("Accuracy: %.2f%%\n", (double)passed / total * 100);
 }

@@ -81,6 +81,10 @@ typedef struct token {
 static Token tokens[32] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
+static int check_parentheses(int p, int q);
+word_t eval(int p, int q);
+
+
 static bool make_token(char *e) {
   int position = 0;
   int i;
@@ -150,13 +154,12 @@ word_t expr(char *e, bool *success) {
   return result;
 }
 
-static uint32_t eval(int p, int q) {
+word_t eval(int p, int q) {
   if (p > q) {
     printf("Bad expression\n");
     assert(0);
     /* Bad expression */
   }
-  long long sum=0;
   else if (p == q) {
     /* Single token.
      * For now this token should be a number.
@@ -165,7 +168,7 @@ static uint32_t eval(int p, int q) {
      long long num;
     if (tokens[p].type == TK_HEX)
       sscanf(tokens[p].str, "%llx", &num);
-    else if (tokens[p].type == TK_DEC)
+    else if (tokens[p].type == TK_NUM)
       sscanf(tokens[p].str, "%lld", &num);
     else if (tokens[p].type == TK_REG) {
       bool success = true;
@@ -199,8 +202,8 @@ static uint32_t eval(int p, int q) {
         break;
     }
     
-    val1 = eval(p, op - 1);
-    val2 = eval(op + 1, q);
+    word_t val1 = eval(p, op - 1);
+    word_t val2 = eval(op + 1, q);
     int op_type = tokens[op].type;
     switch (op_type) {
       case '+': return val1 + val2;

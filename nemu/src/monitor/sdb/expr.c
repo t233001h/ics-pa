@@ -138,8 +138,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-
-
+// 打印 tokens 数组
+  Log("nr_token = %d", nr_token);
+  for (i = 0; i < nr_token; i ++) {
+    Log("tokens[%d] = %s", i, tokens[i].str);
+  }
   return true;
 }
 

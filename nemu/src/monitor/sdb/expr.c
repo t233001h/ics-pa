@@ -221,16 +221,16 @@ static int check_parentheses(int p, int q) {
     return -1;
   int cnt = 0, i;
   for (i = p; i <= q; ++i) {
-    if (tokens[i].type == '(')
+    if (tokens[i].type == TK_LP)
       ++cnt;
-    else if (tokens[i].type == ')')
+    else if (tokens[i].type == TK_RP)
       --cnt;
     if (cnt < 0)
       return 0;
   }
   if (cnt)
     return 0;
-  if (tokens[p].type != '(' || tokens[q].type != ')')
+  if (tokens[p].type != TK_LP || tokens[q].type != TK_RP)
     return -1;
   int result = check_parentheses(p + 1, q - 1);
   if (result) /* value is -1 or 1 */

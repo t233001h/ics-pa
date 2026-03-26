@@ -239,58 +239,63 @@ word_t eval(int p, int q) {
     }
     return (word_t)num;
   }
+
+  // --- 修改点：优先处理括号脱壳 ---
   else if (check_parentheses(p, q) == true) {
-    /* The expression is surrounded by a matched pair of parentheses.
-     * If that is the case, just throw away the parentheses.
-     */
+    /* 比如 ((38))，脱壳变成 (38)，再次递归变成 38 */
     return eval(p + 1, q - 1);
   }
   else {
+    // --- 修改点：找主运算符 ---
     int op = find_main_op(p, q);
-        
-        // 如果找不到主运算符，说明表达式语法错误（例如 "123 456"）
-        if (op == -1) {
-            printf("Bad expression at range [%d, %d]\n", p, q);
-            assert(0);
-        }
+    
+    if (op == -1) {
+        // 如果既不是单数字，又没法脱壳，还找不到运算符，才是真的坏了
+        printf("Bad expression at range [%d, %d]\n", p, q);
+        assert(0);
+    }
 
-        word_t val1 = eval(p, op - 1);
-        word_t val2 = eval(op + 1, q);
+    // 递归计算左右两边
+    word_t val1 = eval(p, op - 1);
+    word_t val2 = eval(op + 1, q);
 
-        switch (tokens[op].type) {
-            case '+': return val1 + val2;
-            case '-': return val1 - val2;
-            case '*': return val1 * val2;
-            case '/': 
-                if (val2 == 0) { printf("Div by zero\n"); assert(0); }
-                return val1 / val2;
-            default: assert(0);
-        }
+    switch (tokens[op].type) {
+      case '+': return val1 + val2;
+      case '-': return val1 - val2;
+      case '*': return val1 * val2;
+      case '/': 
+        if (val2 == 0) { printf("Div by zero\n"); assert(0); }
+        return val1 / val2;
+      default: assert(0);
+    }
   }
 }
 
 static int check_parentheses(int p, int q) {
-  // check if the expression is surrounded by a matched pair of parentheses
-  if (p > q)
-    return -1;
-  int cnt = 0, i;
-  for (i = p; i <= q; ++i) {
-    if (tokens[i].type == TK_LP)
-      ++cnt;
-    else if (tokens[i].type == TK_RP)
-      --cnt;
-    if (cnt < 0)
-      return 0;
+  // 1. 基本检查：首尾必须是左括号和右括号
+  if (tokens[p].type != '(' || tokens[q].type != ')') {
+    return false;
   }
-  if (cnt)
-    return 0;
-  if (tokens[p].type != TK_LP || tokens[q].type != TK_RP)
-    return -1;
-  int result = check_parentheses(p + 1, q - 1);
-  if (result) /* value is -1 or 1 */
-    return 1;
-  else
-    return -1;
+
+  // 2. 检查首尾括号是否是相互匹配的一对
+  int cnt = 0;
+  for (int i = p; i < q; i++) { // 注意：只循环到 q-1
+    if (tokens[i].type == '(') {
+      cnt++;
+    } else if (tokens[i].type == ')') {
+      cnt--;
+    }
+    
+    // 关键点：如果在还没扫到最后一个 token 时 cnt 就归零了
+    // 说明 tokens[p] 的左括号在中间就匹配完了
+    // 例子：(1+2)*(3+4)，当 i 扫到 2 后面的 ')' 时，cnt 变 0，返回 false
+    if (cnt == 0) {
+      return false;
+    }
+  }
+
+  // 3. 如果循环结束 cnt == 1，说明 tokens[p] 正好对应 tokens[q]
+  return (cnt == 1);
 }
 
 // TODO

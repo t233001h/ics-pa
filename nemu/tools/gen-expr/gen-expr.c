@@ -74,11 +74,9 @@ static void gen_space(){
   }
 }
 
-static void gen_rand_expr();
+static void gen_rand_expr(int level);
 
-/* ------------------ 核心修改点 1 ------------------ */
-// 专门用来生成绝对不为 0 的表达式
-static void gen_rand_expr_nonzero() {
+/* static void gen_rand_expr_nonzero() {
   switch (choose(3)) {
     case 0: 
       gen_num(choose(99) + 1); // 生成 1 ~ 99 的常数，确保非 0
@@ -103,39 +101,41 @@ static void gen_rand_expr_nonzero() {
       gen_space();
       break;
   }
-}
+} */
 
 /* ------------------ 核心修改点 2 ------------------ */
-static void gen_rand_expr() {
+static void gen_rand_expr(int level) {
+  if (level > 10 || choose(10) < level) {
+    gen_num(choose(100) + 1);
+    return;
+  }
+
   switch (choose(3)) {
     case 0: 
-      gen_num(choose(100)); // 这里可以生成 0
+      gen_space();
+      gen_num(choose(100) + 1); 
       gen_space();
       break;
-    case 1:  
-      gen('('); 
+    case 1: 
       gen_space();
-      gen_rand_expr(); 
-      gen_space();
-      gen(')'); 
+      gen('('); gen_rand_expr(level + 1); gen(')'); 
       gen_space();
       break;
     default: {
-      int op = choose(4); // 决定生成哪种操作符
-      
-      gen_rand_expr(); 
       gen_space();
-      
-      if (op == 3) { // 如果是除法 '/'
-        gen('/');
+      gen_rand_expr(level + 1);
+      gen_space();
+      int op = choose(4);
+      if (op == 3) {
+        strcat(buf, "/("); 
         gen_space();
-        gen_rand_expr_nonzero(); // 右侧强制生成非零表达式！
+        gen_rand_expr(level + 1); 
+        strcat(buf, "+1)");
+        gen_space();
       } else {
-        if (op == 0) gen('+');
-        else if (op == 1) gen('-');
-        else gen('*');
-        gen_space();
-        gen_rand_expr(); // 其他操作符左右都可以是任意表达式
+        char ops[] = {'+', '-', '*'};
+        gen(ops[op]);
+        gen_rand_expr(level + 1);
       }
       gen_space();
       break;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
   int i;
   for (i = 0; i < loop; i ++) {
     buf[0] = '\0';
-    gen_rand_expr();
+    gen_rand_expr(0);
 
     sprintf(code_buf, code_format, buf);
 

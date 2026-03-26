@@ -76,6 +76,8 @@ static void test_expr_eval() {
     word_t result = expr(expr_str, &success);
 
     if (success && result == expected) {
+      //打印表达式和通过信息
+      printf("Passed: %s\n", expr_str);
       passed++;
     } else {
       failed++;

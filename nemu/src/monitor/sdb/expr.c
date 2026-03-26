@@ -158,6 +158,52 @@ word_t expr(char *e, bool *success) {
   return result;
 }
 
+
+
+/* 寻找主运算符的索引 */
+int find_main_op(int p, int q) {
+    int op = -1;
+    int min_priority = 100; // 初始设为一个较大的值
+    int nested = 0;
+
+    for (int i = p; i <= q; i++) {
+        // 1. 处理括号嵌套，主运算符必须在括号外
+        if (tokens[i].type == '(') {
+            nested++;
+            continue;
+        }
+        if (tokens[i].type == ')') {
+            nested--;
+            continue;
+        }
+        if (nested > 0) continue;
+
+        // 2. 获取当前 token 的优先级
+        int cur_priority = 0;
+        switch (tokens[i].type) {
+            case '+': case '-': 
+                cur_priority = 1; break;
+            case '*': case '/': 
+                cur_priority = 2; break;
+            // 后期可以在这里轻松扩展：
+            // case TK_EQ: case TK_NEQ: cur_priority = 0; break;
+            default: 
+                continue; // 不是运算符，跳过
+        }
+
+        /* 3. 比较优先级确定主运算符
+         * 注意：对于左结合运算符（+ - * /），同优先级时选右边的。
+         * 所以使用 <= min_priority。
+         * 如果以后加入右结合运算符（如单目 -），同优先级时则不能更新 op。
+         */
+        if (cur_priority <= min_priority) {
+            min_priority = cur_priority;
+            op = i;
+        }
+    }
+    return op;
+}
+
 word_t eval(int p, int q) {
   if (p > q) {
     printf("Bad expression\n");
@@ -200,22 +246,26 @@ word_t eval(int p, int q) {
     return eval(p + 1, q - 1);
   }
   else {
-    int op;
-    for ( op = p; op < q; op++){
-      if (tokens[op].type == '+' || tokens[op].type == '-' || tokens[op].type == '*' || tokens[op].type == '/')
-        break;
-    }
-    
-    word_t val1 = eval(p, op - 1);
-    word_t val2 = eval(op + 1, q);
-    int op_type = tokens[op].type;
-    switch (op_type) {
-      case '+': return val1 + val2;
-      case '-': return val1 - val2;
-      case '*': return val1 * val2;
-      case '/': return val1 / val2;
-      default: assert(0);
-    }
+    int op = find_main_op(p, q);
+        
+        // 如果找不到主运算符，说明表达式语法错误（例如 "123 456"）
+        if (op == -1) {
+            printf("Bad expression at range [%d, %d]\n", p, q);
+            assert(0);
+        }
+
+        word_t val1 = eval(p, op - 1);
+        word_t val2 = eval(op + 1, q);
+
+        switch (tokens[op].type) {
+            case '+': return val1 + val2;
+            case '-': return val1 - val2;
+            case '*': return val1 * val2;
+            case '/': 
+                if (val2 == 0) { printf("Div by zero\n"); assert(0); }
+                return val1 / val2;
+            default: assert(0);
+        }
   }
 }
 

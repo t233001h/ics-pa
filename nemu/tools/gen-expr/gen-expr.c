@@ -61,10 +61,17 @@ static void gen(char c) {
 // }
 
 
-static void gen_num(int num) {
+static void gen_rand_val() {
   char temp[32];
-  sprintf(temp, "%d", num);
-  strcat(buf, temp);
+  if (choose(10) < 2) { // 20% 的概率生成十六进制
+    // 生成 1 ~ 255 的随机十六进制数
+    sprintf(temp, "0x%x ", choose(255) + 1); 
+    strcat(buf, temp);
+  } else {
+    // 80% 的概率生成十进制
+    sprintf(temp, "%d ", choose(100) + 1);
+    strcat(buf, temp);
+  }
 }
 
 static void gen_space(){
@@ -76,44 +83,16 @@ static void gen_space(){
 
 static void gen_rand_expr(int level);
 
-/* static void gen_rand_expr_nonzero() {
-  switch (choose(3)) {
-    case 0: 
-      gen_num(choose(99) + 1); // 生成 1 ~ 99 的常数，确保非 0
-      gen_space();
-      break;
-    case 1:  
-      gen('('); 
-      gen_space();
-      gen_rand_expr_nonzero(); // 递归生成非零表达式
-      gen_space();
-      gen(')'); 
-      gen_space();
-      break;
-    default: 
-      // 对于复合表达式，最安全且简单的方法是强制左边是非零，右边加上它
-      // A + B (如果 A, B 都是正数，结果必定非零)
-      gen_rand_expr_nonzero(); 
-      gen_space();
-      gen('+'); 
-      gen_space();
-      gen_rand_expr_nonzero(); 
-      gen_space();
-      break;
-  }
-} */
-
-/* ------------------ 核心修改点 2 ------------------ */
 static void gen_rand_expr(int level) {
   if (level > 10 || choose(10) < level) {
-    gen_num(choose(100) + 1);
+    gen_rand_val();
     return;
   }
 
   switch (choose(3)) {
     case 0: 
       gen_space();
-      gen_num(choose(100) + 1); 
+      gen_rand_val(); 
       gen_space();
       break;
     case 1: 
@@ -134,7 +113,9 @@ static void gen_rand_expr(int level) {
         gen_space();
       } else {
         char ops[] = {'+', '-', '*'};
+        gen(' ');
         gen(ops[op]);
+        gen(' ');
         gen_rand_expr(level + 1);
       }
       gen_space();

@@ -143,7 +143,6 @@ static bool make_token(char *e) {
     printf("%s", tokens[i].str);
   }
   printf("\n");
-  
   return true;
 }
 
